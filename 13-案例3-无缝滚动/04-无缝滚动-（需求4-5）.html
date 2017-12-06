@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style type="text/css">
+        * {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+            border: 0;
+        }
+
+        .all {
+            width: 500px;
+            height: 200px;
+            padding: 7px;
+            border: 1px solid #ccc;
+            margin: 100px auto;
+            position: relative;
+        }
+
+        .screen {
+            width: 500px;
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .screen li {
+            width: 500px;
+            height: 200px;
+            overflow: hidden;
+            float: left;
+        }
+
+        .screen ul {
+            position: absolute;
+            left: 0;
+            top: 0px;
+            width: 3000px;
+        }
+
+        .all ol {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            line-height: 20px;
+            text-align: center;
+        }
+
+        .all ol li {
+            float: left;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border: 1px solid #ccc;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        .all ol li.current {
+            background: yellow;
+        }
+
+        #arr {
+            display: none;
+        }
+
+        #arr span {
+            width: 40px;
+            height: 40px;
+            position: absolute;
+            left: 5px;
+            top: 50%;
+            margin-top: -20px;
+            background: #000;
+            cursor: pointer;
+            line-height: 40px;
+            text-align: center;
+            font-weight: bold;
+            font-family: '黑体';
+            font-size: 30px;
+            color: #fff;
+            opacity: 0.3;
+            border: 1px solid #fff;
+        }
+
+        #arr #right {
+            right: 5px;
+            left: auto;
+        }
+
+    </style>
+    <script>
+        window.onload = function () {
+            var ul = document.getElementById("ul");
+            var ulLiArr=ul.children;
+            var ol=document.getElementById("ol");
+            var screen=document.getElementById("screen");
+            var imgWidth=screen.offsetWidth;
+            var outer=document.getElementById("all");
+            var arr=document.getElementById("arr");
+            var left=document.getElementById("left");
+            var right=document.getElementById("right");
+
+
+            //需求1: 生成很多li添加到ol中，把第一张点亮，复制第一张图片添加到ul的最末尾;
+            //给ol添加li
+            for(var i=0;i<ulLiArr.length;i++){
+                var newLi=document.createElement("li");
+                newLi.innerHTML=i+1;
+                ol.appendChild(newLi);
+            }
+
+            //点亮第一张
+            var olLiArr=ol.children;
+            olLiArr[0].className="current";
+
+            //复制第一张图片到ul的最末尾
+            var li=ulLiArr[0].cloneNode(true);
+            ul.appendChild(li);  //注意注意
+
+
+
+
+            //需求2：鼠标进入ol中，点亮盒子，移动ul;
+            for(var i=0;i<olLiArr.length;i++){
+                //自定义属性绑定索引值
+                //for循环绑定事件，参数不能传过去
+                olLiArr[i].index=i;
+                olLiArr[i].onmouseover=function(){
+
+                    //bug 鼠标进入没有同步square  key
+                    square=key=this.index;
+                    //排他思想
+                    for(var j=0;j<olLiArr.length;j++){
+                        olLiArr[j].className="";
+                    }
+                    this.className="current";
+                    //移动
+                    var width=this.index*imgWidth;
+                    animate(ul,-width);
+
+                }
+            }
+
+
+
+
+            //需求3：鼠标点击右侧按钮，点亮盒子，移动ul;
+
+            outer.onmouseover=function(){
+                arr.style.display="block";
+            }
+            outer.onmouseout=function(){
+                arr.style.display="none";
+            }
+
+            right.onclick=autoPlay;
+            //按钮控制的是底下小方块以及图片的滚动
+            //底下的个数和箭头的个数不一致，上面图片的多一个，要设两个变量
+            var square=0; //底下小的
+            var key=0;//上面图片的
+
+           /* right.onclick=function(){
+                square++;
+                key++;
+                if(square===5){
+                    square=0;  //
+                }
+                //无缝滚动的原理：第二轮的第一张滑向第一张的时候，瞬间闪动到第一张，然后滑向第二张
+                // 是第1个滑向第二个的时候，并不是最后一个滑向第一个
+
+                //key的值最多到5，因为有6张图片，如果key等于6的话，则没有图片可以显示了，全都到了前面
+                //等于6的时候，要显示出第二张，因为第六张为第一个
+                //第二轮要显示第二张的时候，要先从第一轮的最后一张，闪现到第一张，然后再滑动到第二张
+                if(key===6){
+                    ul.style.left=0;
+                    key=1;  //说明向外走一张，显示第二张，  key的值是向外走几张，显示第几+1张
+
+                }
+
+                //点亮盒子
+                for(var j=0;j<olLiArr.length;j++){
+                    olLiArr[j].className="";
+                }
+
+                var width=imgWidth*key;
+                animate(ul,-width);
+
+            }
+
+*/
+
+
+            //需求4：左侧按钮
+            left.onclick=function(){
+                square--;
+                key--;
+                if(square===-1){
+                    square=4;  //=olLiarr.length-1
+                }
+                if(key==-1){  //要找到最后一张图片，瞬间闪动到最后一张，然后再滑动到它的前一张
+                    ul.style.left=-imgWidth*5+"px";
+                    key=4;//  =ulLiArr.length-2       自己画图
+                }
+
+                for(var j=0;j<olLiArr.length;j++){
+                    olLiArr[j].className="";
+                }
+
+                var width=key*imgWidth;
+                animate(ul,-width)
+            }
+
+
+            //需求5：定时器的添加
+            //定时器的逻辑和右侧按钮相同，进行封装
+            var timer=setInterval(autoPlay,1000);
+
+            outer.onmouseover=function(){
+                arr.style.style="block";
+                clearInterval(timer);
+            }
+            outer.onmouseout=function(){
+                arr.style.display="none";
+                timer=setInterval(autoPlay,1000);
+            }
+
+
+
+            //右侧按钮逻辑的封装
+          function autoPlay(){
+                square++;
+                key++;
+                if(square===5){  //olLiArr.length
+                    square=0;  //为什么清零
+                }
+                //无缝滚动的原理：第二轮的第一张滑向第一张的时候，瞬间闪动到第一张，然后滑向第二张
+                // 是第1个滑向第二个的时候，并不是最后一个滑向第一个
+
+                //key的值最多到5，因为有6张图片，如果key等于6的话，则没有图片可以显示了，全都到了前面
+                //等于6的时候，要显示出第二张，因为第六张为第一个
+                //第二轮要显示第二张的时候，要先从第一轮的最后一张，闪现到第一张，然后再滑动到第二张
+                if(key===6){   //ulLiArr.length
+                    ul.style.left=0;
+                    key=1;  //说明向外走一张，显示第二张，  key的值是向外走几张，显示第几+1张
+
+                }
+
+                //点亮盒子
+                for(var j=0;j<olLiArr.length;j++){
+                    olLiArr[j].className="";
+                }
+
+                var width=imgWidth*key;
+                animate(ul,-width);
+
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            //匀速动画封装
+            function animate(ele,target) {
+                //要用定时器，先清除定时器;
+                clearInterval(ele.timer);
+                //设置定时器;
+                ele.timer = setInterval(function () {
+                    //1.获取步长;
+                    var step = target > ele.offsetLeft? 10: -10;
+                    //2.赋值
+                    ele.style.left = ele.offsetLeft + step + "px";
+                    //3.目标位置和当前位置不足或者等于一个步长就清除定时器i;
+                    if(Math.abs(target-ele.offsetLeft) <= Math.abs(step)){
+                        //清除定时器之前，直接设置目标位置
+                        ele.style.left = target+"px";
+                        clearInterval(ele.timer);
+                    }
+                },10);
+            }
+
+
+        }
+    </script>
+</head>
+<body>
+
+
+<div class="all" id='all'>
+    <div class="screen" id="screen">
+        <ul id="ul">
+            <li><img src="images/1.jpg" width="500" height="200"/></li>
+            <li><img src="images/2.jpg" width="500" height="200"/></li>
+            <li><img src="images/3.jpg" width="500" height="200"/></li>
+            <li><img src="images/4.jpg" width="500" height="200"/></li>
+            <li><img src="images/5.jpg" width="500" height="200"/></li>
+        </ul>
+        <ol id="ol">
+
+        </ol>
+        <div id="arr">
+            <span id="left"><</span>
+            <span id="right">></span>
+        </div>
+    </div>
+</div>
+
+
+</body>
+</html>
